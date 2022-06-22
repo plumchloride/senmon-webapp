@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+  <head>
+    <title>{{ title }}</title>
+    <meta charset="utf-8">
+    <meta name="description" content={{ description }}>
+    <link rel="icon" type="image/png" href="./public/img/icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/sanitize.css"/>
+    {% block head %}
+      <!-- ここにメインコンテンツを書く -->
+    {% endblock %}
+  </head>
+  <style>
+    :root{
+      --text-col:#001858;
+      --secondry:#c2b67b;
+      --btn-col:#f582ae;
+      --white: #fff;
+      --bt-text:#001858;
+      --bg:#fef6e4;
+      --bg-active1: #f8ebcb;
+      --bg-active2: #f8df9e;
+      --bg-active3: #fbcd5a;
+      --bg-active4: #fbb912;
+      --active-text: #acd5e5;
+    }
+    body{
+      background-color: var(--bg);
+      color: var(--text-col);
+    }
+    #header{
+      background-color: var(--secondry);
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #title{
+      font-size: larger;
+      font-weight: bold;
+    }
+    #index{
+      border-radius: 10px;
+      border: 1px var(--text-col) solid;
+      padding: 5px;
+      cursor: pointer;
+    }
+    #index:hover{
+      border: 1px var(--active-text) solid;
+      color: var(--active-text);
+    }
+
+    #main{
+      margin-left: 35vw;
+      margin-right: 35vw;
+      width: 30vw;
+    }
+    h2{
+      margin: 10px;
+      border-bottom: 2px solid var(--text-col);
+      padding-left: 10px;
+    }
+    .main-cont{
+      padding-left: 20px;
+    }
+    @media screen and (max-width: 740px) { /*ウィンドウ幅が最大767pxまでの場合に適用*/
+      #main{
+        margin-left: 4vw;
+        margin-right: 4vw;
+        width: 92vw;
+      }
+    }
+  </style>
+  <body>
+    <div id="header">
+      <div id="title">AI アルゴリズムデザイン</div>
+      <a id="index">目次</a>
+    </div>
+    <div id="main">
+      <h2>{{ kadai }}</h2>
+      {% block content %}
+        <!-- ここにメインコンテンツを書く -->
+      {% endblock %}
+    </div>
+  </body>
+</html>

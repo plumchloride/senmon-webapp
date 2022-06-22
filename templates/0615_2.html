@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class = "main-cont">
+  <form id="st_form" onsubmit="return false;">
+    <label>
+      検索したいスタッフ名を入力して下さい。
+      <input id="name" type="text" autocomplete="off" placeholder="スタッフ名">
+      <button type="submit">検索</button>
+    </label>
+  </form>
+  <div id="serch_result" class="result"></div>
+</div>
+<h2>検索履歴</h2>
+<div id="history" class="main-cont"></div>
+<h2>スタッフ追加</h2>
+<div class = "main-cont">
+  <form id="add_form" onsubmit="return false;">
+    <label>
+      追加したいスタッフ名を入力して下さい。<br>
+      <input id="name_add" type="text" autocomplete="off" placeholder="スタッフ名">
+    </label><br>
+    <label>
+      パスワード<br>
+      <input id="pass_add" type="password" autocomplete="off" placeholder="パスワード">
+    </label>
+    <br><br>
+    <button type="submit">追加</button>
+  </form>
+  <div id="add_result" class="result"></div>
+</div>
+{% endblock %}
+
+{% block head %}
+<script defer>
+  let history = []
+
+  window.onload = ()=>{
+    document.getElementById("st_form").addEventListener("submit",()=>{
+      send_json = JSON.stringify({"text":document.getElementById("name").value})
+      xhr = new XMLHttpRequest;
+        xhr.onload = function(){
+          if(xhr.status == 200){
+            var res = xhr.responseText;
+            if(res == "True"){
+              res = "〇 スタッフは存在します"
+            }else if(res == "False"){
+              res = "× スタッフは存在しません"
+            }
+            history.push(`${document.getElementById("name").value} : ${res}`)
+            document.getElementById("serch_result").innerText= res
+            document.getElementById("name").value = ""
+            update_history();
+          }else{
+            alert("バグです。サーバー側にエラーが発生しています。")
+          }
+        };
+        xhr.onerror = function(){
+          alert("バグです。サーバー側にエラーが発生しています。")
+        }
+        xhr.open('POST', "./post-stuff", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(send_json);
+    })
+
+    document.getElementById("add_form").addEventListener("submit",()=>{
+      send_json = JSON.stringify({"text":document.getElementById("name_add").value,"pass":document.getElementById("pass_add").value})
+      xhr = new XMLHttpRequest;
+        xhr.onload = function(){
+          var res = xhr.responseText;
+          if(xhr.status == 200){
+            if(res == "True"){
+              res = "スタッフを追加しました"
+            }else if(res == "False"){
+              res = "パスワードが違います"
+            }
+            document.getElementById("add_result").innerText = res
+          }else{
+            alert("バグです。サーバー側にエラーが発生しています。")
+          }
+        };
+        xhr.onerror = function(){
+          alert("バグです。サーバー側にエラーが発生しています。")
+        }
+        xhr.open('POST', "./post-stuff-add", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(send_json);
+    })
+  }
+
+  const update_history = ()=>{
+    // reverseの挙動（値追加の挙動？おかしい）
+    $history = document.getElementById("history")
+    var text = "<ol>"
+    history.reverse().forEach((element)=>{
+      text += `<li>${element}</li>`
+    })
+    text += "</ol>"
+    $history.innerHTML = text;
+  }
+</script>
+
+<style>
+input{
+  margin-left: 15px;
+  padding-left: 5px;
+}
+button{
+  margin-left: 15px;
+}
+.result{
+  font-size: larger;
+  color: lightcoral;
+}
+</style>
+{% endblock %}

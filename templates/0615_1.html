@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class = "main-cont">
+  <div id="dentaku_display">0</div>
+  <div id="dentaku_body"></div>
+</div>
+<h2>履歴</h2>
+<div id="history" class="main-cont"></div>
+{% endblock %}
+
+{% block head %}
+<script defer>
+  const num_pat = ["（","）","C","＋","７","８","９","ー","４","５","６","×","１","２","３","÷","０","００","．","＝"]
+  const pat_class = ["sy","sy","eq","sy","num","num","num","sy","num","num","num","sy","num","num","num","sy","num","num","num","eq"]
+  const num_data = ["(",")","C","+","7","8","9","-","4","5","6","*","1","2","3","/","0","00",".","="]
+  let For = ""
+  let history = {}
+  window.onload = ()=>{
+    const $body = document.getElementById("dentaku_body");
+    for(let i = 0 ;i < 20;i++){
+      if( i%4 == 0){
+        var $row = document.createElement("div");
+      }
+      var $div = document.createElement("div");
+      $div.innerHTML = num_pat.slice(i,i+1)
+      $div.setAttribute("class",pat_class.slice(i,i+1))
+      $div.setAttribute("onclick",`btn_push('${num_data.slice(i,i+1)}');`)
+      $row.appendChild($div);
+      if( i%4 == 3){
+        $body.appendChild($row);
+      }
+    }
+  }
+  const btn_push = (data)=>{
+    switch(data){
+      case"C":
+        For = "0"
+        change_display();
+        For = ""
+        break;
+      case"=":
+        send_json =JSON.stringify({"text":For});
+        xhr = new XMLHttpRequest;
+        xhr.onload = function(){
+          if(xhr.status == 200){
+            var res = xhr.responseText;
+            history[For] = res
+            For = res
+            change_display();
+            update_history();
+            For = ""
+          }else{
+            history[For] = "ERROR"
+            For = "ERROR"
+            change_display();
+            update_history()
+            For = ""
+          }
+        };
+        xhr.onerror = function(){
+          alert("バグです。サーバー側にエラーが発生しています。")
+        }
+        xhr.open('POST', "./post-dentaku", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(send_json);
+
+        break;
+      default:
+        For += data;
+        change_display();
+    }
+  }
+  const change_display = ()=>{
+    var $result = document.getElementById("dentaku_display");
+    $result.innerText = For
+  }
+  const update_history = ()=>{
+    $history = document.getElementById("history")
+    var text = "<ol>"
+    Object.keys(history).reverse().forEach((key)=>{
+      text += `<li>${key} = ${history[key]}</li>`
+    })
+    text += "</ol>"
+    $history.innerHTML = text;
+  }
+</script>
+
+<style>
+  #dentaku_display{
+    background-color: var(--text-col);
+    color: var(--bg);
+    padding: 15px;
+    text-align: right;
+    margin: 20px 18px;
+  }
+
+
+  #dentaku_body{
+    display: flex;
+    flex-direction: column;
+  }
+  #dentaku_body > div{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+  #dentaku_body > div >div{
+    width: 5vw;
+    height: 5vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 50%;
+    background-color: var(--bg-active1);
+    font-size: larger;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  #dentaku_body > div >div:hover{
+    background-color: var(--bg-active2);
+  }
+  #dentaku_body .sy{
+    background-color: var(--bg-active2);
+  }
+  #dentaku_body .sy:hover{
+    background-color: var(--bg-active3);
+  }
+  #dentaku_body .eq{
+    background-color: var(--bg-active3);
+  }
+  #dentaku_body .eq:hover{
+    background-color: var(--bg-active4);
+  }
+  @media screen and (max-width: 740px) { /*ウィンドウ幅が最大767pxまでの場合に適用*/
+    #dentaku_body > div >div{
+      width: 15vw;
+      height: 15vw;
+    }
+  }
+</style>
+{% endblock %}
