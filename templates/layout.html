@@ -64,11 +64,44 @@
     .main-cont{
       padding-left: 20px;
     }
+    .non-visi{
+      display: none!important;
+    }
+    .flow-wrapper{
+      width: 100%;
+      height:100vh;
+      background-color: rgba(10,10,10,0.6);
+      color: var(--co1);
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 3;
+      overflow-y: hidden;
+      padding: 0px;
+      margin: 0px;
+      left: 0px;
+      top: 0px;
+    }
+    .flow-container{
+      padding: 20px;
+      border-radius: 10px;
+      background-color: var(--bg-active1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      max-width: 30vw;
+      z-index: 4;
+    }
     @media screen and (max-width: 740px) { /*ウィンドウ幅が最大767pxまでの場合に適用*/
       #main{
         margin-left: 4vw;
         margin-right: 4vw;
         width: 92vw;
+      }
+      .flow-container{
+        max-width: 80vw;
       }
     }
   </style>

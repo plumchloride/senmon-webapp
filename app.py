@@ -1,8 +1,17 @@
 from flask import Flask, render_template ,request
+import glob
+import MeCab
+import urllib.request
+import pandas as pd
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+import pandas as pd
+import json
 
 app = Flask(__name__)
 
-url_address = ["0615_1","0615_2"]
+url_address = ["0615_1","0615_2","0622"]
+
 
 @app.route('/0615_1')
 def dentaku():
@@ -38,6 +47,85 @@ def add_stuff():
     return "True"
   else:
     return "False"
+
+# 第二週
+@app.route('/0622')
+def tfidf():
+  name = "書き込み"
+  kadai = "ファイル追加"
+  return render_template('0622.html', title=name,description =name,kadai=kadai)
+
+@app.route('/post-tf-text',methods=["POST"])
+def add_tf():
+  f = open("static/tmp/"+request.json['name']+'.txt', 'w', encoding='UTF-8')
+  f.write(request.json['text'])
+  f.close()
+  return "True"
+
+@app.route('/tf-culc',methods=["POST"])
+def tf_culc():
+  print("tf_culc start")
+  files = glob.glob("./static/tmp/*.txt")
+  novel = []
+  for file in files:
+    with open(file, "r") as afile:
+      novel.append(afile.read())
+  print(files)
+  m = MeCab.Tagger("-Owakati")  # MeCabで分かち書きにする
+
+  readtextlist = novel
+  stringlist = ['\n'.join(u) for u in readtextlist]
+  wakatilist = [parsewithelimination(u) for u in stringlist]
+  wakatilist = np.array(wakatilist)
+
+  vectorizer = TfidfVectorizer(use_idf=True, norm=None, token_pattern=u'(?u)\\b\\w+\\b')
+  tfidf = vectorizer.fit_transform(wakatilist)
+
+  tfidfpd = pd.DataFrame(tfidf.toarray())
+  itemlist=sorted(vectorizer.vocabulary_.items(), key=lambda x:x[1])
+  tfidfpd.columns = [u[0] for u in itemlist]  # 欄の見出し（単語）を付ける
+  tfidfpd.index=[u for u in files]
+  tfidfpd.to_csv("./static/output/metadata.csv")
+  result = str(tfidfpd.head())
+  return result
+
+def parsewithelimination(sentense):
+  slothlib_path = 'http://svn.sourceforge.jp/svnroot/slothlib/CSharp/Version1/SlothLib/NLP/Filter/StopWord/word/Japanese.txt'
+  slothlib_file = urllib.request.urlopen(slothlib_path)
+  stopwords=[]
+  for line in slothlib_file:
+    ss=line.decode("utf-8").strip()
+    if not ss==u'':
+      stopwords.append(ss)
+
+  elim=['数','非自立','接尾']
+  part=['名詞', '動詞', '形容詞']
+
+  m=MeCab.Tagger()
+  m.parse('')
+  node=m.parseToNode(sentense)
+  result=''
+  while node:
+    if node.feature.split(',')[6] == '*': # 原形を取り出す
+      term=node.surface
+    else :
+      term=node.feature.split(',')[6]
+    if term in stopwords:
+      node=node.next
+      continue
+    if node.feature.split(',')[1] in elim:
+      node=node.next
+      continue
+
+    if node.feature.split(',')[0] in part:
+      if result == '':
+        result = term
+      else:
+        result=result.strip() + ' '+ term
+    node=node.next
+
+  return result
+
 
 
 ## おまじない

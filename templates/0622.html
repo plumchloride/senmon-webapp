@@ -1,0 +1,131 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class = "main-cont">
+  <h3>ファイル追加</h3>
+  <form onsubmit="return false;" id="file_form">
+    <input type="file" id="input_file" accept=".txt" required><br><br>
+    <button type="submit">送信</button>
+  </form>
+  <p id="out_put" class="result"></p>
+  <h3>内容</h3>
+  <div>
+    <code id="text_preview">
+      プレビュー
+    </code>
+  </div>
+</div>
+<h2>TFIDF</h2>
+<div class = "main-cont">
+  <h3>TFIDF計算</h3>
+  <form id="tf_culc" onsubmit="return false;">
+    <button type="submit">計算</button>
+  </form>
+  <h3>ファイル</h3>
+  <a href="./static/output/metadata.csv">metadata.csv</a>
+  <div>
+    <pre>
+      <code id="csv_preview">
+        プレビュー
+      </code>
+    </pre>
+  </div>
+</div>
+<div id="nowl" class="flow-wrapper non-visi">
+  <div class="flow-container">
+    計算中
+  </div>
+</div>
+{% endblock %}
+
+{% block head %}
+<script defer>
+  let text_url = ""
+  let novel_text = ""
+  let novel_name = ""
+  window.onload = ()=>{
+    document.getElementById("input_file").addEventListener("change",(e)=>{
+      novel_name = e.target.value.slice(e.target.value.lastIndexOf("\\")+1,e.target.value.lastIndexOf(".txt"))
+      var file_reader = new FileReader();
+      file_reader.addEventListener('load', function(e) {
+        document.getElementById("out_put").innerText = ""
+        var text = e.target.result;
+        text = text.replace(/《[^》]*》/g,"")
+        text = text.replace(/［＃[^］]*］/g,"")
+        text = text.slice(text.lastIndexOf("-----------")+15,text.lastIndexOf("底本：")||text.length)
+        novel_text = text
+        document.getElementById("text_preview").innerText = text
+      });
+      file_reader.readAsText(e.target.files[0],"shift-jis");
+    })
+
+    document.getElementById("file_form").addEventListener("submit",()=>{
+      send_json = JSON.stringify({"text":novel_text,"name":novel_name})
+      xhr = new XMLHttpRequest;
+        xhr.onload = function(){
+          if(xhr.status == 200){
+            document.getElementById("text_preview").innerText = "プレビュー"
+            document.getElementById("input_file").value = ""
+            document.getElementById("out_put").innerText = "送信しました"
+          }else{
+            alert("バグです。サーバー側にエラーが発生しています。")
+          }
+        };
+        xhr.onerror = function(){
+          alert("バグです。サーバー側にエラーが発生しています。")
+        }
+        xhr.open('POST', "./post-tf-text", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(send_json);
+    })
+
+    document.getElementById("tf_culc").addEventListener("submit",()=>{
+      document.getElementById("nowl").classList.remove("non-visi");
+      send_json = JSON.stringify({"text":"None"})
+      xhr = new XMLHttpRequest;
+        xhr.onload = function(){
+          if(xhr.status == 200){
+            document.getElementById("csv_preview").innerText = xhr.responseText;
+            document.getElementById("nowl").classList.add("non-visi");
+          }else{
+            alert("バグです。サーバー側にエラーが発生しています。")
+            document.getElementById("nowl").classList.add("non-visi");
+          }
+        };
+        xhr.onerror = function(){
+          alert("バグです。サーバー側にエラーが発生しています。")
+          document.getElementById("nowl").classList.add("non-visi");
+        }
+        xhr.open('POST', "./tf-culc", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(send_json);
+    })
+  }
+</script>
+<style>
+input{
+  margin-left: 15px;
+}
+button{
+  margin-left: 15px;
+}
+.result{
+  font-size: larger;
+  color: lightcoral;
+}
+code{
+  display: block;
+  padding: 10px;
+  background-color: var(--bg-active1);
+  max-height: 20vh;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  font-size: small;
+}
+#csv_preview{
+  overflow-x: scroll;
+}
+
+
+</style>
+{% endblock %}
