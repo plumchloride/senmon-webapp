@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class = "main-cont">
+  <form onsubmit="return false;" id="form_word">
+    <label>
+      類似度計算に用いる単語：
+      <input type="text" placeholder="単語" id="input_word" required>
+    </label>
+    <br>
+    <button type="submit">検索</button>
+  </form>
+</div>
+<h2>類似結果</h2>
+<div class="main-cont">
+  <h3 id="serch_word">検索ワード：〇〇</h3>
+  <table id="result_table"></table>
+</div>
+{% endblock %}
+
+{% block head %}
+<script defer>
+  window.onload =()=>{
+    document.getElementById("form_word").addEventListener("submit",()=>{
+      let word = document.getElementById("input_word").value
+      document.getElementById("input_word").value = ""
+      document.getElementById("serch_word").innerText = `検索ワード：${word}`
+      send_json = JSON.stringify({"word":word})
+      xhr = new XMLHttpRequest;
+        xhr.onload = function(){
+          if(xhr.status == 200){
+            document.getElementById("result_table").innerHTML = xhr.responseText
+          }else{
+            alert("バグです。サーバー側にエラーが発生しています。")
+          }
+        };
+      xhr.onerror = function(){
+        alert("バグです。サーバー側にエラーが発生しています。")
+      }
+      xhr.open('POST', "./ruizido-word", true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(send_json);
+    })
+  }
+
+</script>
+
+<style>
+  td{
+    padding: 5px;
+    font-size: smaller;
+  }
+  table{
+    padding-right: 10px;
+  }
+  @media screen and (max-width: 740px) { /*ウィンドウ幅が最大767pxまでの場合に適用*/
+
+  }
+</style>
+{% endblock %}

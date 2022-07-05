@@ -126,6 +126,39 @@ def parsewithelimination(sentense):
 
   return result
 
+# === 第三週 ===
+
+@app.route('/0629')
+def calc_ruizido():
+  name = "類似度計算"
+  kadai = "与えられた単語の類似度計算"
+  return render_template('0629.html', title=name,description =name,kadai=kadai)
+
+@app.route('/ruizido-word',methods=["POST"])
+def ruizido_word():
+  df = pd.read_csv('./static/output/metadata.csv', header=0, index_col=0)
+  print(df)
+  qvec=np.zeros(df.columns.shape)
+  keys=np.array([str(request.json['word'])])
+  # keys=np.array(['10分間','鼓動'])
+  for key in keys:
+    if np.any(df.columns == key):
+      qvec[np.where(df.columns==key)[0][0]]=1
+  result=np.array([])
+  for i in range(df.index.shape[0]):
+    result=np.append(result, comp_sim(qvec, df.iloc[i,:].to_numpy()))
+  rank=np.argsort(result)
+  return_test = ""
+  for index in rank[:-rank.shape[0]-1:-1]:
+    return_test += '<tr><td>{}</td><td>{}</td></tr>'.format(df.index[index], result[index])
+    print('{}\t{}'.format(df.index[index], result[index]))
+  return return_test
+
+
+def comp_sim(qvec,tvec):
+  print(np.linalg.norm(qvec) * np.linalg.norm(tvec))
+  return np.dot(qvec, tvec) / (np.linalg.norm(qvec) * np.linalg.norm(tvec))
+
 
 
 ## おまじない
