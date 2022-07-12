@@ -160,6 +160,14 @@ def comp_sim(qvec,tvec):
   return np.dot(qvec, tvec) / (np.linalg.norm(qvec) * np.linalg.norm(tvec))
 
 
+# 第四週
+@app.route('/0706',methods=["GET"])
+def get_metadata():
+  name = "メタデータ取得"
+  kadai = "画像のメタデータ取得"
+  return render_template('0706.html', title=name,description =name,kadai=kadai)
+
+
 
 ## おまじない
 if __name__ == "__main__":

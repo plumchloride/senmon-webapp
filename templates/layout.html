@@ -61,6 +61,9 @@
       border-bottom: 2px solid var(--text-col);
       padding-left: 10px;
     }
+    img{
+      max-width: 28vw;
+    }
     .main-cont{
       padding-left: 20px;
     }
@@ -94,11 +97,20 @@
       max-width: 30vw;
       z-index: 4;
     }
+    .flex-center{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
     @media screen and (max-width: 740px) { /*ウィンドウ幅が最大767pxまでの場合に適用*/
       #main{
         margin-left: 4vw;
         margin-right: 4vw;
         width: 92vw;
+      }
+      img{
+        max-width: 78vw;
+        margin-left: 1vw;
       }
       .flow-container{
         max-width: 80vw;

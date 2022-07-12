@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class = "main-cont">
+  <form onsubmit="return false;" id="file_form">
+    <label>
+      画像ファイルを選択して下さい：
+      <input type="file"  id="input_img" accept=".jpg,.png,.jpeg" required>
+    </label>
+    <br>
+  </form>
+  <p id="before_img_wh"></p>
+  <img src="http://placehold.jp/6b6b6b/ffffff/500x500.png" id="before_img"><br><br>
+  <div class="flex-center"><button type="button" id="send_file">送信</button></div>
+
+</div>
+<h2>類似結果</h2>
+<div class="main-cont">
+  <h3 id="serch_word">検索ワード：〇〇</h3>
+  <table id="result_table"></table>
+</div>
+{% endblock %}
+
+{% block head %}
+<script defer>
+  let img_file = ""
+  window.onload =()=>{
+    document.getElementById("input_img").addEventListener('change', (e)=>{
+      img_file = event.target.files[0];
+      reader = new FileReader();
+      reader.onload = (e) => {
+        imageUrl = e.target.result;
+        document.getElementById("before_img").src = imageUrl;
+
+        // ファイル幅取得、表示
+        img_element = new Image();
+        img_element.onload = ()=>{
+          width = img_element.naturalWidth ;
+          height = img_element.naturalHeight ;
+          document.getElementById("before_img_wh").innerText = `width:${width}px, height:${height}px`
+        }
+        img_element.src = imageUrl;
+        image_Url = imageUrl;
+      }
+      reader.readAsDataURL(img_file);
+    });
+    document.getElementById("send_file").addEventListener("click",()=>{
+      if(img_file == ""){
+        alert("ファイルを選択して下さい")
+      }else{
+        
+      }
+    })
+  }
+
+</script>
+
+<style>
+  td{
+    padding: 5px;
+    font-size: smaller;
+  }
+  table{
+    padding-right: 10px;
+  }
+  @media screen and (max-width: 740px) { /*ウィンドウ幅が最大767pxまでの場合に適用*/
+
+  }
+</style>
+{% endblock %}
