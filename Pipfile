@@ -9,6 +9,8 @@ pandas = "*"
 mecab-python3 = "*"
 numpy = "*"
 scikit-learn = "*"
+opencv-python = "~=4.1.2.30"
+opencv-contrib-python = "~=4.1.2.30"
 
 [dev-packages]
 

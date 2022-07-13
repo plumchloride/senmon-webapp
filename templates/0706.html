@@ -14,10 +14,13 @@
   <div class="flex-center"><button type="button" id="send_file">送信</button></div>
 
 </div>
-<h2>類似結果</h2>
+<h2>計算結果</h2>
 <div class="main-cont">
-  <h3 id="serch_word">検索ワード：〇〇</h3>
-  <table id="result_table"></table>
+  <h3>AKAZE特徴量画像</h3>
+  <div id="result"></div>
+  <h3>RGB metadeta.csv</h3>
+  <div id="csv_result"></div>
+  <br>
 </div>
 {% endblock %}
 
@@ -48,11 +51,48 @@
       if(img_file == ""){
         alert("ファイルを選択して下さい")
       }else{
-        
+        var xhr = new XMLHttpRequest;
+          xhr.onload = function(){
+            console.log(JSON.parse(xhr.responseText))
+            var $result = document.getElementById("result")
+            JSON.parse(xhr.responseText)["data"].forEach(element => {
+            $img = document.createElement("img")
+            $img.src = element
+            $result.appendChild($img)
+            })
+            get_csv();
+          };
+        xhr.onerror = function(){
+          alert("バグです。サーバー側にエラーが発生しています。")
+        }
+        xhr.open('POST', "./img-post", true);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+        xhr.send(img_file);
       }
     })
+    get_csv();
   }
-
+const get_csv = ()=>{
+  $csv = document.getElementById("csv_result")
+  $csv.innerHtml = ""
+  var xhr = new XMLHttpRequest();
+  xhr.addEventListener('load', (event) => {
+    let response = event.target.responseText;
+    var row_data = response.split(/\r\n|\n/);
+    result_txt = "<table>"
+    row_data.forEach(e=>{
+      result_txt +="<tr>"
+      e.split(",").forEach(element=>{
+        result_txt+=`<td>${element}</td>`
+      })
+      result_txt+="</tr>"
+    })
+    result_txt += "</table>"
+    $csv.innerHTML= result_txt
+  });
+  xhr.open('GET', "./static/output/metadata_rgb.csv", true);
+  xhr.send();
+  }
 </script>
 
 <style>
@@ -63,8 +103,14 @@
   table{
     padding-right: 10px;
   }
+  #csv_result{
+    max-width: 28vw;
+    overflow-x: scroll;
+  }
   @media screen and (max-width: 740px) { /*ウィンドウ幅が最大767pxまでの場合に適用*/
-
+    #csv_result{
+    max-width: 78vw;
+  }
   }
 </style>
 {% endblock %}

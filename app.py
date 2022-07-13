@@ -7,6 +7,10 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 import pandas as pd
 import json
+import cv2
+import time
+import pickle
+import os
 
 app = Flask(__name__)
 
@@ -160,12 +164,54 @@ def comp_sim(qvec,tvec):
   return np.dot(qvec, tvec) / (np.linalg.norm(qvec) * np.linalg.norm(tvec))
 
 
-# 第四週
+# ==第四週==
 @app.route('/0706',methods=["GET"])
 def get_metadata():
   name = "メタデータ取得"
   kadai = "画像のメタデータ取得"
   return render_template('0706.html', title=name,description =name,kadai=kadai)
+
+@app.route("/img-post",methods = ["POST"])
+def img_post():
+  _bytes = np.frombuffer(request.data, np.uint8)
+  # decode the bytes to image directly
+  img = cv2.imdecode(_bytes, flags=cv2.IMREAD_COLOR)
+  now_time = str(time.time()).replace(".","_")
+  cv2.imwrite(f'./static/tmp/{now_time}.jpg', img)
+  im_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+  rgb_mean = np.array([np.mean(im_rgb[:,0]),np.mean(im_rgb[:,1]),np.mean(im_rgb[:,2])])
+  f = open('./static/output/metadata_rgb.csv', 'a+')
+  f.write(now_time+','+str(rgb_mean[0])+','+str(rgb_mean[1])+','+str(rgb_mean[2])+'\n')
+  f.close()
+
+  if os.path.isfile("./static/output/metadata.pickle"):
+    with open("./static/output/metadata.pickle", mode="rb") as f:
+      sources = pickle.load(f)
+  else:
+    sources = {}
+  akaze = cv2.AKAZE_create()
+  kp, des = akaze.detectAndCompute(img, None)
+  features = [kp, des]
+  keypoints=[]
+  kp_akaze = cv2.drawKeypoints(img, kp, None, flags=4)
+  cv2.imwrite(f'./static/tmp/{now_time}_akaze.jpg', kp_akaze)
+  for keys in features[0]:
+    temp = (keys.pt, keys.size, keys.angle, keys.response, keys.octave, keys.class_id)
+    keypoints.append(temp)
+  # keypointsをbytesに変換
+  map(bytes, keypoints)
+  sources[f'./static/tmp/{now_time}.jpg'] = {
+      "src": f'./static/tmp/{now_time}.jpg',
+      "keypoint": keypoints,
+      "descriptor": features[1],
+      }
+
+  with open("./static/output/metadata.pickle", mode="wb") as f:
+    pickle.dump(sources, f)
+
+  files = glob.glob("./static/tmp/*_akaze.jpg")
+  json_data = json.dumps({"data":files})
+  return json_data
 
 
 
