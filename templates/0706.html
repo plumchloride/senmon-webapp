@@ -17,9 +17,12 @@
 <h2>計算結果</h2>
 <div class="main-cont">
   <h3>AKAZE特徴量画像</h3>
+  <button type="button" onclick="getakaze()">AKAZE画像を取得</button>
   <div id="result"></div>
   <h3>RGB metadeta.csv</h3>
   <div id="csv_result"></div>
+  <h3>RGB 類似度順</h3>
+  <div id="rui_result"></div>
   <br>
 </div>
 {% endblock %}
@@ -56,9 +59,18 @@
             console.log(JSON.parse(xhr.responseText))
             var $result = document.getElementById("result")
             JSON.parse(xhr.responseText)["data"].forEach(element => {
-            $img = document.createElement("img")
-            $img.src = element
-            $result.appendChild($img)
+              $img = document.createElement("img")
+              $img.src = element
+              $result.appendChild($img)
+            })
+            var $result = document.getElementById("rui_result")
+            JSON.parse(xhr.responseText)["rgbfile"].forEach((element,index) => {
+              $h4 = document.createElement("h4")
+              $h4.innerHTML = JSON.parse(xhr.responseText)["rgb_rank"][index]
+              $result.appendChild($h4)
+              $img = document.createElement("img")
+              $img.src = `./static/tmp/${element}_akaze.jpg`
+              $result.appendChild($img)
             })
             get_csv();
           };
@@ -92,6 +104,25 @@ const get_csv = ()=>{
   });
   xhr.open('GET', "./static/output/metadata_rgb.csv", true);
   xhr.send();
+  }
+
+  const getakaze = ()=>{
+    var xhr = new XMLHttpRequest;
+          xhr.onload = function(){
+            var $result = document.getElementById("result")
+            $result.innerHTML = ""
+            JSON.parse(xhr.responseText)["data"].forEach(element => {
+            $img = document.createElement("img")
+            $img.src = element
+            $result.appendChild($img)
+            })
+            get_csv();
+          };
+        xhr.onerror = function(){
+          alert("バグです。サーバー側にエラーが発生しています。")
+        }
+        xhr.open('POST', "./get_akaze", true);
+        xhr.send();
   }
 </script>
 

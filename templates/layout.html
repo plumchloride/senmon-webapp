@@ -118,9 +118,26 @@
     }
   </style>
   <body>
+    <!-- 全画面 window -->
+    <div id="index_wr" class="flow-wrapper non-visi">
+      <div class="flow-container">
+        <!-- url_address = ["0615_1","0615_2","0622","0629","0706"] -->
+        <a href="./0615_1">電卓アプリケーション</a>
+        <a href="./0615_2">スタッフ追加検索アプリケーション</a>
+        <a href="./0622">小説TFIDF検索ツール</a>
+        <a href="./0629">単語類似度検索ツール</a>
+        <a href="./0706">画像メタデータ検出ツール</a>
+
+        <br>
+        <div onclick="document.getElementById('index_wr').classList.add('non-visi')" style="text-decoration: underline solid 1px;cursor:pointer;">閉じる</div>
+      </div>
+
+    </div>
+
+
     <div id="header">
       <div id="title">AI アルゴリズムデザイン</div>
-      <a id="index">目次</a>
+      <a onclick="document.getElementById('index_wr').classList.remove('non-visi')" id="index">目次</a>
     </div>
     <div id="main">
       <h2>{{ kadai }}</h2>

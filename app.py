@@ -14,8 +14,6 @@ import os
 
 app = Flask(__name__)
 
-url_address = ["0615_1","0615_2","0622"]
-
 
 @app.route('/0615_1')
 def dentaku():
@@ -159,12 +157,7 @@ def ruizido_word():
   return return_test
 
 
-def comp_sim(qvec,tvec):
-  print(np.linalg.norm(qvec) * np.linalg.norm(tvec))
-  return np.dot(qvec, tvec) / (np.linalg.norm(qvec) * np.linalg.norm(tvec))
-
-
-# ==第四週==
+# ==第四・五週==
 @app.route('/0706',methods=["GET"])
 def get_metadata():
   name = "メタデータ取得"
@@ -173,6 +166,12 @@ def get_metadata():
 
 @app.route("/img-post",methods = ["POST"])
 def img_post():
+  # メタデータ読み込み
+  df=pd.read_csv('./static/output/metadata_rgb.csv', header=0)
+  tfilepaths=df["time"]
+  rgbs=df[["R","G","B"]]
+
+
   _bytes = np.frombuffer(request.data, np.uint8)
   # decode the bytes to image directly
   img = cv2.imdecode(_bytes, flags=cv2.IMREAD_COLOR)
@@ -183,6 +182,20 @@ def img_post():
   f = open('./static/output/metadata_rgb.csv', 'a+')
   f.write(now_time+','+str(rgb_mean[0])+','+str(rgb_mean[1])+','+str(rgb_mean[2])+'\n')
   f.close()
+
+
+  result=np.array([])
+  qvec = np.array([rgb_mean[0],rgb_mean[1],rgb_mean[2]])
+  for i in range(rgbs.index.shape[0]):
+    result=np.append(result, comp_sim(qvec, rgbs.iloc[i,:].to_numpy()))
+  rank=np.argsort(result)
+  return_result = []
+  return_filepath = []
+  for index in rank[:-rank.shape[0]-1:-1]:
+    return_result.append(result[index])
+    return_filepath.append(tfilepaths[index])
+
+  files = glob.glob("./static/tmp/*_akaze.jpg")
 
   if os.path.isfile("./static/output/metadata.pickle"):
     with open("./static/output/metadata.pickle", mode="rb") as f:
@@ -209,12 +222,19 @@ def img_post():
   with open("./static/output/metadata.pickle", mode="wb") as f:
     pickle.dump(sources, f)
 
+
+  files = glob.glob("./static/tmp/*_akaze.jpg")
+  json_data = json.dumps({"data":files,"rgbfile":return_filepath,"rgb_rank":return_result})
+  return json_data
+
+@app.route("/get_akaze",methods = ["POST"])
+def get_akaze():
   files = glob.glob("./static/tmp/*_akaze.jpg")
   json_data = json.dumps({"data":files})
   return json_data
 
-
-
+def comp_sim(qvec,tvec):
+  return np.dot(qvec, tvec) / (np.linalg.norm(qvec) * np.linalg.norm(tvec))
 ## おまじない
 if __name__ == "__main__":
   app.run(debug=True)
